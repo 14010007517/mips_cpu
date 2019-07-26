@@ -4,7 +4,7 @@
 module mycpu_top(
     input  wire        clk,
     input  wire        resetn,            //low active
-	input  wire [ 5:0] int_n_i,
+	input  wire [5:0] int_n_i,
 
     //axi
     //ar
@@ -47,13 +47,13 @@ module mycpu_top(
     input  [3 :0] bid          ,
     input  [1 :0] bresp        ,
     input         bvalid       ,
-    output        bready       
-  //`ifdef SIMU_DEBUG
-   ,output wire [31:0] debug_wb_pc,
+    output        bready       ,
+//   `ifdef SIMU_DEBUG
+    output wire [31:0] debug_wb_pc,
     output wire [ 3:0] debug_wb_rf_wen,
     output wire [ 4:0] debug_wb_rf_wnum,
     output wire [31:0] debug_wb_rf_wdata
-  //`endif
+//   `endif
 );
 //nextpc_gen
 wire [31:0] nextpc;

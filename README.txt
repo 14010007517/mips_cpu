@@ -1,4 +1,4 @@
-#encoding：UTF-8
+﻿#encoding：UTF-8
 
 cpu.h:               模块之间的op每一位分别代表什么指令。
 

@@ -25,7 +25,7 @@ module cpu_axi_interface
     output        data_data_ok ,
 
     //axi
-    //ar
+    //ar    读地址
     output [3 :0] arid         ,
     output [31:0] araddr       ,
     output [7 :0] arlen        ,
@@ -36,14 +36,14 @@ module cpu_axi_interface
     output [2 :0] arprot       ,
     output        arvalid      ,
     input         arready      ,
-    //r           
+    //r     读数据 
     input  [3 :0] rid          ,
     input  [31:0] rdata        ,
     input  [1 :0] rresp        ,
     input         rlast        ,
     input         rvalid       ,
     output        rready       ,
-    //aw          
+    //aw  写地址   
     output [3 :0] awid         ,
     output [31:0] awaddr       ,
     output [7 :0] awlen        ,
@@ -54,7 +54,7 @@ module cpu_axi_interface
     output [2 :0] awprot       ,
     output        awvalid      ,
     input         awready      ,
-    //w          
+    //w  写数据        
     output [3 :0] wid          ,
     output [31:0] wdata        ,
     output [3 :0] wstrb        ,
@@ -79,6 +79,8 @@ always @ (posedge clk)
 begin
 	if(resetn)
 	begin
+    // 异步时序逻辑
+    // 当有
 		req_reg  <= (data_req || inst_req) & ~req_reg ? 1'b1 :
 			        (rcomplete || wcomplete) ? 1'b0 : req_reg;
 		wr_reg   <= data_req&&data_addr_ok ? data_wr :
@@ -110,7 +112,9 @@ end
 
 //inst sram-like
 assign inst_rdata = rdata;
+// inst_ram 发送地址成功
 assign inst_addr_ok = ~req_reg && ~data_req;
+// inst_ram 的 输出数据握手成功
 assign inst_data_ok = req_reg && rcomplete;
 //data sram-like
 assign data_rdata = rdata;
@@ -140,6 +144,7 @@ assign awburst = 2'b01;
 assign awlock  = 2'd0;
 assign awcache = 4'd0;
 assign awprot  = 3'd0;
+
 assign awvalid = req_reg & wr_reg && ~addr_sd;
 
 //w

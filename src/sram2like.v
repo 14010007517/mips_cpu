@@ -18,7 +18,7 @@ module sram2like(
 	output wire [31:0] inst_sram_rdata,
 
 	input  wire        data_sram_en,
-	input  wire [ 3:0] data_sram_wen,
+	input  wire [ 3:0] data_sram_wen, //写字节使能
 	input  wire [31:0] data_sram_addr,
 	input  wire [31:0] data_sram_wdata,
 	output wire [31:0] data_sram_rdata,
@@ -34,7 +34,7 @@ module sram2like(
 
     output wire        data_req,
     output wire        data_wr,
-    output wire [1 :0] data_size,
+    output wire [1 :0] data_size,//写字节数目
     output wire [31:0] data_addr,
 	output wire [31:0] data_wdata,  
     input  wire [31:0] data_rdata,
@@ -60,15 +60,26 @@ always @(posedge clk)
 begin
 	if (resetn)
 	begin
+	// 以下为异步时序逻辑
+	// eg: 当 inst_data_ok , inst_aok, inst_en均完成的时候，可能表示一次握手成功。
+	// inst 使能
 		inst_en <= (inst_data_ok && inst_aok && inst_en)?1'b0 : 
 				   (inst_sram_en)? 1'b1 : inst_en; //inst_sram_en;
+	// inst_address reg 
 		inst_areg <= (inst_data_ok && inst_aok && inst_en)?32'd0 : 
 					 (inst_sram_en)?inst_sram_addr : inst_areg; //inst_sram_addr;
+	// inst_date reg 
 		inst_dreg <= (inst_data_ok && inst_en)?inst_sram_rdata : inst_dreg;
+	//  data en
 		data_en <= (data_data_ok && data_en)?1'b0 : data_sram_en;
+	// data_address
 		data_areg <= (data_data_ok && data_en)?32'd0 : data_sram_addr;
+	// data_data 
 		data_dreg <= (data_data_ok && data_en)?data_rdata : data_dreg;
+	// data_sram 的 写使能
 		data_wen <= (data_data_ok && data_wen && data_en)?1'b0: |data_sram_wen;
+		
+	// wnum 表示写字节的数目 
 		data_size_reg <= (2'b00 & {2{wnum == 3'd1}}) |
 						 (2'b01 & {2{wnum == 3'd2}} ) |
 						 (2'b10 & {2{wnum == 3'd3 || wnum == 3'd4}});
@@ -76,8 +87,10 @@ begin
 						 (2'b01 & {2{(wnum == 3'd1 && data_sram_wen[1]) || (wnum == 3'd3 && data_sram_wen[3])}}) |
 						 (2'b11 & {2{wnum == 3'd1 && data_sram_wen[3]}});
 		data_data_reg <= (data_data_ok && data_wen) ? 32'd0 : data_sram_wdata;
+		// inst_ram inst_answer_ok inst响应请求
 		inst_aok <= (inst_aok && inst_data_ok)? 1'b0 :
 					(inst_en && inst_addr_ok)? 1'b1 : inst_aok;
+		// data_ram 响应请	 data_answer_ok
 		data_aok <= (data_aok && data_data_ok)? 1'b0 :
 					(data_en && data_addr_ok)? 1'b1 : data_aok;
 	end
