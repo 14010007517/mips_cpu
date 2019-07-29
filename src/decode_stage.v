@@ -14,11 +14,11 @@ module decode_stage(
 
 	input  wire        stall,
 
-    output wire [ 4:0] de_rf_raddr1,
-    input  wire [31:0] de_rf_rdata1,
-    output wire [ 4:0] de_rf_raddr2,
-    input  wire [31:0] de_rf_rdata2,
-	input  wire [31:0] inst_sram_rdata,
+    output wire [ 4:0] de_rf_raddr1,	// regfile 的输入 addr2
+    input  wire [31:0] de_rf_rdata1,	// regfile 的输出 rd2
+    output wire [ 4:0] de_rf_raddr2, 	// regfile 的输入 addr2
+    input  wire [31:0] de_rf_rdata2, 	// regfile 的输出 rd2
+	input  wire [31:0] inst_sram_rdata, // inst_ram中的指令
 
     output wire        de_br_taken,     //1: branch taken, go to the branch target
     output wire        de_br_is_br,     //1: target is PC+offset

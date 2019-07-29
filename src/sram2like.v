@@ -4,6 +4,7 @@
     > Mail: lvfeng97@outlook.com
     > Date: 2017-12-04
  ************************************************************************/
+//  sram 向 类sram 接口的转化
 module sram2like(
 	input  wire        clk,
 	input  wire        resetn,
@@ -11,38 +12,44 @@ module sram2like(
 
 	output wire        stall,
 
-	input  wire        inst_sram_en,
-	input  wire [ 3:0] inst_sram_wen,
+	input  wire        inst_sram_en, // 恒为1，读取
+	input  wire [ 3:0] inst_sram_wen,// 恒为0， 仅读取数据
 	input  wire [31:0] inst_sram_addr,
-	input  wire [31:0] inst_sram_wdata,
-	output wire [31:0] inst_sram_rdata,
+	input  wire [31:0] inst_sram_wdata, //恒为0 ，仅读取
+	// output
+	output wire [31:0] inst_sram_rdata, // 根据地址得到的
 
 	input  wire        data_sram_en,
 	input  wire [ 3:0] data_sram_wen, //写字节使能
 	input  wire [31:0] data_sram_addr,
 	input  wire [31:0] data_sram_wdata,
-	output wire [31:0] data_sram_rdata,
+	// output
+	output wire [31:0] data_sram_rdata, //从外设获取data值，？？？？ 
 
 	output wire        inst_req,
-	output wire        inst_wr,
+	// 入射
+	output wire        inst_wr, // 恒为0， 仅读取数据
 	output wire [1 :0] inst_size,
 	output wire [31:0] inst_addr,
 	output wire [31:0] inst_wdata,
+	// input
     input  wire [31:0] inst_rdata,
     input  wire        inst_addr_ok,
     input  wire        inst_data_ok,
 
-    output wire        data_req,
-    output wire        data_wr,
+    output wire        data_req, // data_ram 的请求状态
+    output wire        data_wr,  // 写使能
     output wire [1 :0] data_size,//写字节数目
-    output wire [31:0] data_addr,
+    output wire [31:0] data_addr,// 共同控制传输数据的字节数
 	output wire [31:0] data_wdata,  
+	// input
     input  wire [31:0] data_rdata,
+	// 写地址，写数据握手信号
     input  wire        data_addr_ok,
     input  wire        data_data_ok 
 );
 
-assign inst_wr = |inst_sram_wen;
+assign inst_wr = |inst_sram_wen; 
 assign inst_size = 2'b10;
 assign inst_wdata = inst_sram_wdata;
 
@@ -56,12 +63,11 @@ reg  [ 1:0] data_size_reg;
 reg  [ 1:0] data_addr_reg;
 wire [ 2:0] wnum;
 
+
 always @(posedge clk)
 begin
 	if (resetn)
 	begin
-	// 以下为异步时序逻辑
-	// eg: 当 inst_data_ok , inst_aok, inst_en均完成的时候，可能表示一次握手成功。
 	// inst 使能
 		inst_en <= (inst_data_ok && inst_aok && inst_en)?1'b0 : 
 				   (inst_sram_en)? 1'b1 : inst_en; //inst_sram_en;

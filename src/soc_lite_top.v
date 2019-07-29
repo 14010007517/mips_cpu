@@ -687,7 +687,7 @@ axi_wrap_ram u_axi_ram
     .ram_random_mask ( ram_random_mask )
 );
 
-//confreg
+//confreg 外设，不存在数据存储器之类的
 confreg #(.SIMULATION(SIMULATION)) u_confreg
 (
     .timer_clk   ( sys_clk    ),  // i, 1   

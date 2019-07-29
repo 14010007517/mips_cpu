@@ -148,7 +148,7 @@ assign c0_wen     = exe_op[`_MTC0];
 assign inc0       = exe_vsrc1;
 
 reg   [1:0] de_en;
-assign exe_out_en = (de_en == 2)?0 : 1;
+assign exe_out_en = (de_en == 2)?0 : 1;  
 always @(posedge clk)
 begin
 	if (stall) begin
@@ -176,7 +176,7 @@ begin
 		high <= (high_en)?({32{en}} & md_result[63:32]) | ({32{exe_op[`_MTHI]}} & exe_vsrc1) : high;
 		low <= (low_en)?({32{en}} & md_result[31:0]) | ({32{exe_op[`_MTLO]}} & exe_vsrc1) : low;
 		de_en <= (~excp && (de_out_op[`_DIV]) || (de_out_op[`_DIVU]))?2 : 
-				 (en)?1 : de_en;
+				 (en)?1 : de_en;//这什么骚操作？？？用2跟1作为标志
 		md_reg <= md_result;
 		`ifdef SIMU_DEBUG
 		exe_pc <= de_pc;

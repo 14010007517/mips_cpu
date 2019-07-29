@@ -19,8 +19,8 @@ module forward(
 	input  wire [ 4:0] de_rf_raddr2,
 	input  wire [31:0] de_rf_rdata2,
 	
-	output wire        fe_en,
-	output wire        de_en,
+	output wire        fe_en, 	
+	output wire        de_en, 	
 	output wire        exe_en,
 	output wire [31:0] de_data1,
 	output wire [31:0] de_data2

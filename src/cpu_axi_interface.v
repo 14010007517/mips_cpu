@@ -5,8 +5,8 @@ module cpu_axi_interface
 
 	input  [ 3:0] data_sram_wen,
     //inst sram-like 
-    input         inst_req     ,
-    input         inst_wr      ,
+    input         inst_req     , // inst_ram 的使能信号
+    input         inst_wr      , // 恒为0 ，仅读取
     input  [1 :0] inst_size    ,
     input  [31:0] inst_addr    ,
     input  [31:0] inst_wdata   ,
@@ -15,9 +15,9 @@ module cpu_axi_interface
     output        inst_data_ok ,
     
     //data sram-like 
-    input         data_req     ,
-    input         data_wr      ,
-    input  [1 :0] data_size    ,
+    input         data_req     ,    // data_ram en
+    input         data_wr      ,    // data_sram的写信号
+    input  [1 :0] data_size    ,        
     input  [31:0] data_addr    ,
     input  [31:0] data_wdata   ,
     output [31:0] data_rdata   ,
@@ -79,19 +79,30 @@ always @ (posedge clk)
 begin
 	if(resetn)
 	begin
-    // 异步时序逻辑
-    // 当有
+    // 
 		req_reg  <= (data_req || inst_req) & ~req_reg ? 1'b1 :
 			        (rcomplete || wcomplete) ? 1'b0 : req_reg;
+        // 当接受到data_req 与 inst_req 的信号时， 且没有被处理，req置上；若没有inst_req 或者data_req信号，或者已经被处理，此时若传输完成，则置0，若传输没有完成，则保持原有状态，
+        // rcomlete 表示地址请求； wcomlete 表示 数据请求
+        // 为什么用两个信号来表示，读写通道是分开的啊，一共五个通道
+
+        
 		wr_reg   <= data_req&&data_addr_ok ? data_wr :
 		        	inst_req&&inst_addr_ok ? inst_wr : 
 					wr_reg;
+        // 写信号: 当
+
+
+
+
 		size_reg <= data_req&&data_addr_ok ? data_size :
 					inst_req&&inst_addr_ok ? inst_size : size_reg;
 		addr_reg <= data_req&&data_addr_ok ? data_addr :
 					inst_req&&inst_addr_ok ? inst_addr : addr_reg;
 		wdata_reg <= data_req&&data_addr_ok ? data_wdata :
 					 inst_req&&inst_addr_ok ? inst_wdata : wdata_reg;
+        
+        // awvalid 依赖于addr_sd, 而addr_sd 与awready有关， 这是不是造成了死锁；
 		addr_sd  <= ((awvalid && awready) || (arvalid && arready)) ? 1'b1 :
 			        (rcomplete || wcomplete) ? 1'b0 : 
 					addr_sd;
@@ -121,6 +132,7 @@ assign data_rdata = rdata;
 assign data_addr_ok = ~req_reg;
 assign data_data_ok = req_reg && (rcomplete || (wcomplete && bvalid));
 
+//  ？？？？ 完成信号？？
 assign rcomplete = addr_sd && (rvalid && rready);
 assign wcomplete = addr_sd && (bvalid && bready);
 // ar
@@ -133,6 +145,7 @@ assign arlock  = 2'b00;
 assign arcache = 4'd0;
 assign arprot  = 3'd0;
 assign arvalid = req_reg && ~wr_reg && ~addr_sd;
+// 当addr_sd 为有效时，将
 //r
 assign rready  = 1'b1;
 //aw
